@@ -2,7 +2,7 @@
  * ServoPing.cpp
  *
  *  Created on: Apr 18, 2015
- *      Author: jonasthomas
+ *      Author: Tom Matukas Workshop88 
  */
 
 #include "ServoPing.h"

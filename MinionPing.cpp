@@ -32,7 +32,7 @@ void loop()
 	  Serial.print(uS / US_ROUNDTRIP_CM); // Convert ping time to distance and print result (0 = outside set distance range, no ping echo)
 	  Serial.print("cm ");
 	  Serial.print(uS);
-	  Serial.println("cm asdf");
+	  Serial.println("uSeconds");
 	  }
 	  previousUs= uS;
 }
