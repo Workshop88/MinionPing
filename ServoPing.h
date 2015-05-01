@@ -10,21 +10,40 @@
 #include <Servo.h>
 #include "NewPing.h"
 #include "Arduino.h"
+#define NOSERVO2 255
+#define DEFAULTMINSERVOTHROW 0
+#define DEFAULTMINSERVOTHROW 0
 
 class ServoPing {
 public:
-	ServoPing(uint8_t servo_pin,uint8_t ping_trigger_pin, uint8_t ping_echo_pin, unsigned int ping_max_cm_distance);
-	ServoPing(uint8_t servo_pin,uint8_t ping_pin, unsigned int ping_max_cm_distance);
-
+	ServoPing(uint8_t servo_pin1,uint8_t servo_pin2,uint8_t  ping_trigger_pin, uint8_t ping_echo_pin, unsigned int ping_max_cm_distance);
+	ServoPing(uint8_t servo_pin1,uint8_t ping_trigger_pin, uint8_t ping_echo_pin, unsigned int ping_max_cm_distance);
+	ServoPing(uint8_t servo_pin1,uint8_t ping_pin, unsigned int ping_max_cm_distance);
+    void disablePing();
+    void enablePing();
+    bool getPingState();
 	unsigned int UpdateCurrentPosition();
-
+    //void
 private:
-	Servo * spServo;
-	NewPing *spSonar;
-    unsigned int curPos;
-    unsigned int servoPin;
-    bool servoPinAttached;
-    void commonConstructorRoutines(uint8_t servo_pin,uint8_t ping_trigger_pin, uint8_t ping_echo_pin, unsigned int ping_max_cm_distance);
+	Servo * _spServo1;
+	Servo * _spServo2;
+	NewPing * _spSonar;
+    unsigned int _curPos;
+
+    bool _servoPin1Attached;
+    unsigned int _servoPin1;
+    unsigned int _servo1MinThrow;
+    unsigned int _servo1MaxThrow;
+
+    bool _servoPin2Attached;
+    unsigned int _servoPin2;
+    unsigned int _servo2MinThrow;
+    unsigned int _servo2MaxThrow;
+
+
+
+    bool _pingControlsServos;
+    void commonConstructorRoutines(uint8_t servo_pin1,uint8_t ping_trigger_pin, uint8_t ping_echo_pin, unsigned int ping_max_cm_distance,uint8_t servo_pin2=NOSERVO2 );
 };
 
 #endif /* SERVOPING_H_ */
