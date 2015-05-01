@@ -24,9 +24,9 @@ NewPing::NewPing(uint8_t trigger_pin, uint8_t echo_pin, unsigned int max_cm_dist
 	_triggerMode = (uint8_t *) portModeRegister(digitalPinToPort(trigger_pin)); // Get the port mode register for the trigger pin.
 
 #if ROUNDING_ENABLED == false
-	_maxEchoTime = min(max_cm_distance + 1, MAX_SENSOR_DISTANCE + 1) * US_ROUNDTRIP_CM; // Calculate the maximum distance in uS (no rounding).
+	_maxEchoTime = min(max_cm_distance + 1, MAX_SENSOR_DISTANCE + 1) * US_ROUNDTRIP_CM; // Calculate the maximum distance in CurrentDistanceToPingSensor (no rounding).
 #else
-	_maxEchoTime = min(max_cm_distance, MAX_SENSOR_DISTANCE) * US_ROUNDTRIP_CM + (US_ROUNDTRIP_CM / 2); // Calculate the maximum distance in uS.
+	_maxEchoTime = min(max_cm_distance, MAX_SENSOR_DISTANCE) * US_ROUNDTRIP_CM + (US_ROUNDTRIP_CM / 2); // Calculate the maximum distance in CurrentDistanceToPingSensor.
 #endif
 
 #ifndef __AVR__
@@ -61,21 +61,21 @@ unsigned int NewPing::ping() {
 
 
 unsigned long NewPing::ping_cm() {
-	unsigned long echoTime = NewPing::ping();         // Calls the ping method and returns with the ping echo distance in uS.
+	unsigned long echoTime = NewPing::ping();         // Calls the ping method and returns with the ping echo distance in CurrentDistanceToPingSensor.
 #if ROUNDING_ENABLED == false
 	return (echoTime / US_ROUNDTRIP_CM);              // Call the ping method and returns the distance in centimeters (no rounding).
 #else
-	return NewPingConvert(echoTime, US_ROUNDTRIP_CM); // Convert uS to centimeters.
+	return NewPingConvert(echoTime, US_ROUNDTRIP_CM); // Convert CurrentDistanceToPingSensor to centimeters.
 #endif
 }
 
 
 unsigned long NewPing::ping_in() {
-	unsigned long echoTime = NewPing::ping();         // Calls the ping method and returns with the ping echo distance in uS.
+	unsigned long echoTime = NewPing::ping();         // Calls the ping method and returns with the ping echo distance in CurrentDistanceToPingSensor.
 #if ROUNDING_ENABLED == false
 	return (echoTime / US_ROUNDTRIP_IN);              // Call the ping method and returns the distance in inches (no rounding).
 #else
-	return NewPingConvert(echoTime, US_ROUNDTRIP_IN); // Convert uS to inches.
+	return NewPingConvert(echoTime, US_ROUNDTRIP_IN); // Convert CurrentDistanceToPingSensor to inches.
 #endif
 }
 
@@ -180,7 +180,7 @@ unsigned int NewPing::get_interrupt() {
 
 void NewPing::ping_timer(void (*userFunc)(void)) {
 	if (!ping_trigger()) return;         // Trigger a ping, if it returns false, return without starting the echo timer.
-	timer_us(ECHO_TIMER_FREQ, userFunc); // Set ping echo timer check every ECHO_TIMER_FREQ uS.
+	timer_us(ECHO_TIMER_FREQ, userFunc); // Set ping echo timer check every ECHO_TIMER_FREQ CurrentDistanceToPingSensor.
 }
 
 
@@ -226,7 +226,7 @@ void NewPing::timer_us(unsigned int frequency, void (*userFunc)(void)) {
 	OCR4C = min((frequency>>2) - 1, 255); // Every count is 4uS, so divide by 4 (bitwise shift right 2) subtract one, then make sure we don't go over 255 limit.
 	TIMSK4 = (1<<TOIE4);                  // Enable Timer4 interrupt.
 #elif defined (__arm__) && defined (TEENSYDUINO) // Timer for Teensy 3.x
-	itimer.begin(userFunc, frequency);           // Really simple on the Teensy 3.x, calls userFunc every 'frequency' uS.
+	itimer.begin(userFunc, frequency);           // Really simple on the Teensy 3.x, calls userFunc every 'frequency' CurrentDistanceToPingSensor.
 #else
 	OCR2A = min((frequency>>2) - 1, 255); // Every count is 4uS, so divide by 4 (bitwise shift right 2) subtract one, then make sure we don't go over 255 limit.
 	TIMSK2 |= (1<<OCIE2A);                // Enable Timer2 interrupt.
@@ -244,7 +244,7 @@ void NewPing::timer_ms(unsigned long frequency, void (*userFunc)(void)) {
 	OCR4C = 249;         // Every count is 4uS, so 1ms = 250 counts - 1.
 	TIMSK4 = (1<<TOIE4); // Enable Timer4 interrupt.
 #elif defined (__arm__) && defined (TEENSYDUINO)  // Timer for Teensy 3.x
-	itimer.begin(NewPing::timer_ms_cntdwn, 1000); // Set timer to 1ms (1000 uS).
+	itimer.begin(NewPing::timer_ms_cntdwn, 1000); // Set timer to 1ms (1000 CurrentDistanceToPingSensor).
 #else
 	OCR2A = 249;           // Every count is 4uS, so 1ms = 250 counts - 1.
 	TIMSK2 |= (1<<OCIE2A); // Enable Timer2 interrupt.
@@ -320,17 +320,17 @@ ISR(TIMER2_COMPA_vect) {
 
 unsigned int NewPing::convert_cm(unsigned int echoTime) {
 #if ROUNDING_ENABLED == false
-	return (echoTime / US_ROUNDTRIP_CM);              // Convert uS to centimeters (no rounding).
+	return (echoTime / US_ROUNDTRIP_CM);              // Convert CurrentDistanceToPingSensor to centimeters (no rounding).
 #else
-	return NewPingConvert(echoTime, US_ROUNDTRIP_CM); // Convert uS to centimeters.
+	return NewPingConvert(echoTime, US_ROUNDTRIP_CM); // Convert CurrentDistanceToPingSensor to centimeters.
 #endif
 }
 
 
 unsigned int NewPing::convert_in(unsigned int echoTime) {
 #if ROUNDING_ENABLED == false
-	return (echoTime / US_ROUNDTRIP_IN);              // Convert uS to inches (no rounding).
+	return (echoTime / US_ROUNDTRIP_IN);              // Convert CurrentDistanceToPingSensor to inches (no rounding).
 #else
-	return NewPingConvert(echoTime, US_ROUNDTRIP_IN); // Convert uS to inches.
+	return NewPingConvert(echoTime, US_ROUNDTRIP_IN); // Convert CurrentDistanceToPingSensor to inches.
 #endif
 }

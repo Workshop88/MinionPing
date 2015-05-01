@@ -16,19 +16,29 @@
 
 class ServoPing {
 public:
-	ServoPing(uint8_t servo_pin1,uint8_t servo_pin2,uint8_t  ping_trigger_pin, uint8_t ping_echo_pin, unsigned int ping_max_cm_distance);
-	ServoPing(uint8_t servo_pin1,uint8_t ping_trigger_pin, uint8_t ping_echo_pin, unsigned int ping_max_cm_distance);
-	ServoPing(uint8_t servo_pin1,uint8_t ping_pin, unsigned int ping_max_cm_distance);
-    void disablePing();
-    void enablePing();
+	ServoPing(uint8_t servoId,uint8_t servo_pin1,uint8_t servo_pin2,uint8_t  ping_trigger_pin, uint8_t ping_echo_pin, unsigned int ping_max_cm_distance,unsigned int rollingAvgCount);
+//	ServoPing(uint8_t servo_pin1,uint8_t ping_trigger_pin, uint8_t ping_echo_pin, unsigned int ping_max_cm_distance);
+//	ServoPing(uint8_t servo_pin1,uint8_t ping_pin, unsigned int ping_max_cm_distance);
+    void disablePingControlOfServos();
+    void enablePingControlOfServos();
     bool getPingState();
 	unsigned int UpdateCurrentPosition();
-    //void
+	//void
+
 private:
 	Servo * _spServo1;
 	Servo * _spServo2;
 	NewPing * _spSonar;
+
     unsigned int _curPos;
+    unsigned int _RollingPositionAvg;
+    unsigned int RollingAveCount;
+
+
+    unsigned int _servoId;
+    unsigned int _maxPingDistance;
+
+    unsigned zeroCount;
 
     bool _servoPin1Attached;
     unsigned int _servoPin1;
@@ -43,7 +53,7 @@ private:
 
 
     bool _pingControlsServos;
-    void commonConstructorRoutines(uint8_t servo_pin1,uint8_t ping_trigger_pin, uint8_t ping_echo_pin, unsigned int ping_max_cm_distance,uint8_t servo_pin2=NOSERVO2 );
+    void commonConstructorRoutines(uint8_t ServoID,uint8_t servo_pin1,uint8_t ping_trigger_pin, uint8_t ping_echo_pin, unsigned int ping_max_cm_distance,unsigned int RollingAvgCount, uint8_t servo_pin2=NOSERVO2 );
 };
 
 #endif /* SERVOPING_H_ */

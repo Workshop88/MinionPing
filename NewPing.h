@@ -21,7 +21,7 @@
 // new life into these very affordable distance sensors. 
 //
 // FEATURES:
-// * Works with many different ultrasonic sensors: SR04, SRF05, SRF06, DYP-ME007, URM37 & Parallax PING)))™.
+// * Works with many different ultrasonic sensors: SR04, SRF05, SRF06, DYP-ME007, URM37 & Parallax PING)))ï¿½.
 // * Compatible with the entire Arduino line-up, Teensy family (including $19 96Mhz 32 bit Teensy 3.0) and derivatives.
 // * Interface with all but the SRF06 sensor using only one Arduino pin.
 // * Doesn't lag for a full second if no ping/echo is received.
@@ -31,7 +31,7 @@
 // * Uses port registers for a faster pin interface and smaller code size.
 // * Allows you to set a maximum distance where pings beyond that distance are read as no ping "clear".
 // * Ease of using multiple sensors (example sketch with 15 sensors).
-// * More accurate distance calculation (cm, inches & uS).
+// * More accurate distance calculation (cm, inches & CurrentDistanceToPingSensor).
 // * Doesn't use pulseIn, which is slow and gives incorrect results with some ultrasonic sensor models.
 // * Actively developed with features being added and bugs/issues addressed.
 //
@@ -72,7 +72,7 @@
 //   Optimized for smaller compiled size (even smaller than sketches that
 //   don't use a library).
 //
-// 07/14/2012 v1.4 - Added support for the Parallax PING)))™ sensor. Interface
+// 07/14/2012 v1.4 - Added support for the Parallax PING)))ï¿½ sensor. Interface
 //   with all but the SRF06 sensor using only one Arduino pin. You can also
 //   interface with the SRF06 using one pin if you install a 0.1uf capacitor
 //   on the trigger and echo pins of the sensor then tie the trigger pin to
@@ -129,8 +129,8 @@
 
 // Shoudln't need to changed these values unless you have a specific need to do so.
 #define MAX_SENSOR_DISTANCE 500 // Maximum sensor distance can be as high as 500cm, no reason to wait for ping longer than sound takes to travel this distance and back. Default=500
-#define US_ROUNDTRIP_CM 57      // Microseconds (uS) it takes sound to travel round-trip 1cm (2cm total), uses integer to save compiled code space. Default=57
-#define US_ROUNDTRIP_IN 146     // Microseconds (uS) it takes sound to travel round-trip 1 inch (2 inches total), uses integer to save compiled code space. Defalult=146
+#define US_ROUNDTRIP_CM 57      // Microseconds (CurrentDistanceToPingSensor) it takes sound to travel round-trip 1cm (2cm total), uses integer to save compiled code space. Default=57
+#define US_ROUNDTRIP_IN 146     // Microseconds (CurrentDistanceToPingSensor) it takes sound to travel round-trip 1 inch (2 inches total), uses integer to save compiled code space. Defalult=146
 #define ONE_PIN_ENABLED true    // Set to "false" to disable one pin mode which saves around 14-26 bytes of binary size. Default=true
 #define ROUNDING_ENABLED false  // Set to "true" to enable distance rounding which also adds 64 bytes to binary size. Default=false
 #define URM37_ENABLED false     // Set to "true" to enable support for the URM37 sensor in PWM mode. Default=false
@@ -138,11 +138,11 @@
 
 // Probably shoudln't change these values unless you really know what you're doing.
 #define NO_ECHO 0               // Value returned if there's no ping echo within the specified MAX_SENSOR_DISTANCE or max_cm_distance. Default=0
-#define MAX_SENSOR_DELAY 5800   // Maximum uS it takes for sensor to start the ping. Default=5800
+#define MAX_SENSOR_DELAY 5800   // Maximum CurrentDistanceToPingSensor it takes for sensor to start the ping. Default=5800
 #define ECHO_TIMER_FREQ 24      // Frequency to check for a ping echo (every 24uS is about 0.4cm accuracy). Default=24
 #define PING_MEDIAN_DELAY 29000 // Microsecond delay between pings in the ping_median method. Default=29000
-#define PING_OVERHEAD 5         // Ping overhead in microseconds (uS). Default=5
-#define PING_TIMER_OVERHEAD 13  // Ping timer overhead in microseconds (uS). Default=13
+#define PING_OVERHEAD 5         // Ping overhead in microseconds (CurrentDistanceToPingSensor). Default=5
+#define PING_TIMER_OVERHEAD 13  // Ping timer overhead in microseconds (CurrentDistanceToPingSensor). Default=13
 #if URM37_ENABLED == true
 	#undef  US_ROUNDTRIP_CM
 	#undef  US_ROUNDTRIP_IN
@@ -150,7 +150,7 @@
 	#define US_ROUNDTRIP_IN 127     // If 50uS is 1cm, 1 inch would be 127uS (50 x 2.54 = 127). Default=127
 #endif
 
-// Conversion from uS to distance (round result to nearest cm or inch).
+// Conversion from CurrentDistanceToPingSensor to distance (round result to nearest cm or inch).
 #define NewPingConvert(echoTime, conversionFactor) (max(((unsigned int)echoTime + conversionFactor / 2) / conversionFactor, (echoTime ? 1 : 0)))
 
 // Detect non-AVR microcontrollers (Teensy 3.x, Arduino DUE, etc.) and don't use port registers or timer interrupts as required.
