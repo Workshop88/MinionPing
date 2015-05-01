@@ -23,24 +23,31 @@ unsigned int ServoPing::UpdateCurrentPosition(){
 
 	if (_pingControlsServos==false)
 	{
-		return 0;
+		return _spSonar->ping();
 	}
 	if (!_servoPin1Attached)
 	{
 		_spServo1->attach(_servoPin1);
 		_servoPin1Attached=true;
 	}
+
 	if (_servoPin2!=NOSERVO2)
 	{
-		if (!servoPin2Attached)
+		if (!_servoPin2Attached)
 		{
 			_spServo2->attach(_servoPin2);
-			servoPin2Attached=true;
+			_servoPin2Attached=true;
 		}
+
+
 	}
 
+	Serial.print("Ol");// Every works as long as this line is in. Makes no sense.
 	_curPos =_spSonar->ping();
+
 	_spServo1->write((int) map (_curPos,15*US_ROUNDTRIP_CM, 60*US_ROUNDTRIP_CM,0,179));
+
+
 	_spServo2->write((int) map (_curPos,15*US_ROUNDTRIP_CM, 60*US_ROUNDTRIP_CM,0,179));
 
 	return _curPos;
@@ -48,7 +55,10 @@ unsigned int ServoPing::UpdateCurrentPosition(){
 
  void ServoPing::commonConstructorRoutines(uint8_t servo_pin1,uint8_t ping_trigger_pin, uint8_t ping_echo_pin, unsigned int ping_max_cm_distance,uint8_t servo_pin2)
 {
-	_spServo1= new Servo();
+	 _spSonar= new NewPing(ping_trigger_pin,ping_echo_pin, ping_max_cm_distance);
+	 _pingControlsServos=true;
+
+	 _spServo1= new Servo();
 	_servoPin1 =servo_pin1;
 
 
@@ -60,8 +70,7 @@ unsigned int ServoPing::UpdateCurrentPosition(){
 		_servoPin2 =servo_pin2;
 	}
 
-	_spSonar= new NewPing(ping_trigger_pin,ping_echo_pin, ping_max_cm_distance);
-	_pingControlsServos=true;
+
 	_curPos=0;
 	_servoPin1Attached=false;
 	_servoPin2Attached=false;
