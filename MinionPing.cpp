@@ -13,9 +13,9 @@
 #define LEFT_GAME_SERVO_MIN_THROW 30
 #define LEFT_GAME_SERVO_MAX_THROW 120
 
-#define RIGHT_MINION_PING_ECHO  2
-#define RIGHT_MINION_PING_TRIGGER  4  // Arduino pin tied to both trigger and echo pins on the ultrasonic sensor.
-#define RIGHT_MINION_TABLE_SERVO 11
+#define RIGHT_MINION_PING_ECHO  12
+#define RIGHT_MINION_PING_TRIGGER 13  // Arduino pin tied to both trigger and echo pins on the ultrasonic sensor.
+#define RIGHT_MINION_TABLE_SERVO 5
 #define RIGHT_MINION_ARM_LEFTARM_SERVO  6
 #define RIGHT_MINION_ARM_RIGHTARM_SERVO  9
 #define RIGHT_MINION_ID 2
@@ -36,7 +36,7 @@
 
 //val = analogRead(potpinL);            // reads the value of the potentiometer (value between 0 and 1023)
 //  val = map(val, 120, 860, 30, 120);     // scale it to use it with the servo (value between 0 and 180)
-//  myservoL.write(val);                  // sets the servo position according to the scaled value
+//  LeftTableAxis.write(val);                  // sets the servo position according to the scaled value
 //  val = analogRead(potpinR);            // reads the value of the potentiometer (value between 0 and 1023)
 //  ival=val;
 //  val = map(val, 120, 860, 5, 100);     // scale it to use it with the servo (value between 0 and 180)
@@ -87,6 +87,94 @@ void setup()
 
 	 }
 
+#define DemoDelay 1800
+//#define InThresh 3
+//#define DemoDebounce 1500
+byte cornersL[4]={50,50,140,140};
+byte cornersR[4]={20,80,20,80};
+
+void demoMode(){
+//  static int cnt=0, Lval=255, Rval=255;
+//  static unsigned int debounce=0;
+  int i;//,tmp//v;al;
+//  boolean isdemo=0;
+
+while(1){  //don't worry, there's a return in there!
+
+// tmpval=analogRead(potpinL);
+//  if(abs(tmpval-Lval)>InThresh){
+//    debounce=0;
+//    Lval=tmpval;
+//  }//end if L
+//  else
+//  debounce++;  // yes, it will wrap
+//
+// tmpval=analogRead(potpinR);
+//  if(abs(tmpval-Rval)>InThresh){
+//    debounce=0;
+//    Rval=tmpval;
+//  }//end if R
+//  else
+//  debounce++;  // maybe only need one of these
+//
+//  isdemo=(debounce>DemoDebounce);
+
+
+
+
+    LeftTableAxis.write((int)cornersL[0]);
+    rightTableAxis.write((int)cornersR[0]);
+    delay(DemoDelay);
+    if ((LeftSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
+        {
+        	EnableLeftServos=true;
+        	return;
+
+        }
+
+
+
+    LeftTableAxis.write((int)cornersL[1+(i>2)]);
+    rightTableAxis.write((int)cornersR[1+(i>2)]);
+    delay(DemoDelay);
+    if ((rightSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
+        {
+        	EnableRightServos=true;
+        	return;
+
+        }
+
+
+    LeftTableAxis.write((int)cornersL[3]);
+    rightTableAxis.write((int)cornersR[3]);
+    delay(DemoDelay);
+    if ((LeftSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
+        {
+        	EnableLeftServos=true;
+        	return;
+
+        }
+
+    LeftTableAxis.write((int)cornersL[1+(i<3)]);
+    rightTableAxis.write((int)cornersR[1+(i<3)]);
+    delay(DemoDelay);
+    if ((rightSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
+        {
+        	EnableRightServos=true;
+        	return;
+
+        }
+
+
+    if(++i >5)i=0;
+}//end while 1
+
+}//end demoMode
+
+
+
+
+
 // The loop function is called in an endless loop
 void loop()
 {
@@ -113,13 +201,20 @@ void loop()
 			Serial.print(F("Left Enabled"));
 			LeftMinionRightArm.write((int) map (LeftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
 			LeftMinionLeftArm.write((int) map (LeftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
-			LeftTableAxis.write((int) map (LeftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,4,130));
+			LeftTableAxis.write((int) map (LeftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,50,140));
 		}
 		else
 		{
 			Serial.print(F("Left Disabled"));
 
 		}
+
+
+		Serial.print(LeftMinionRollingAverage );
+		Serial.print (F("--- "));
+		Serial.print(CurLeftPingDistance);
+
+
 
 
 	    CurRightPingDistance =rightSonarEyes.ping()/US_ROUNDTRIP_CM;
@@ -141,24 +236,30 @@ void loop()
 
 		if (EnableRightServos==true)
 		{
-			Serial.print(F("Right Enabled"));
+			Serial.print(F("-- Right Enabled"));
 			rightMinionRightArm.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
 			rightMinionLeftArm.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
-			rightTableAxis.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,4,130));
+			rightTableAxis.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,20,120));
 		}
 		else
 		{
-			Serial.print(F("Right Disabled"));
+			Serial.print(F("-- Right Disabled"));
 
 		}
 
+		Serial.print(rightMinionRollingAverage );
+			Serial.print (F("--- "));
+			Serial.println(CurRightPingDistance);
 
-
-
-
-		Serial.print(LeftMinionRollingAverage );
-		Serial.print (F("--- "));
-		Serial.println(CurLeftPingDistance);
-
+		if ((EnableLeftServos==false) & (EnableRightServos==false))
+			{
+			demoMode();
+			}
 
 }
+
+
+
+
+
+
