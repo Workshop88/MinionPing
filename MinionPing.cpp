@@ -13,7 +13,14 @@
 #define LEFT_GAME_SERVO_MIN_THROW 30
 #define LEFT_GAME_SERVO_MAX_THROW 120
 
-
+#define RIGHT_MINION_PING_ECHO  2
+#define RIGHT_MINION_PING_TRIGGER  4  // Arduino pin tied to both trigger and echo pins on the ultrasonic sensor.
+#define RIGHT_MINION_TABLE_SERVO 11
+#define RIGHT_MINION_ARM_LEFTARM_SERVO  6
+#define RIGHT_MINION_ARM_RIGHTARM_SERVO  9
+#define RIGHT_MINION_ID 2
+#define RIGHT_GAME_SERVO_MIN_THROW 30
+#define RIGHT_GAME_SERVO_MAX_THROW 120
 
 
 #define DEFAULT_MIN_SERVO_THROW 0
@@ -38,12 +45,28 @@
 
 unsigned int CurLeftPingDistance=0;
 unsigned int LeftMinionRollingAverage =0;
-unsigned int previousUs=0;
+//unsigned int previousUs=0;
 bool EnableLeftServos;
 Servo LeftMinionRightArm;
 Servo LeftMinionLeftArm;
 Servo LeftTableAxis;
 NewPing  LeftSonarEyes=  NewPing(LEFT_MINION_PING_TRIGGER,LEFT_MINION_PING_ECHO, MAX_DISTANCE+10);
+
+
+unsigned int CurRightPingDistance=0;
+unsigned int rightMinionRollingAverage =0;
+//unsigned int previousUs=0;
+bool EnableRightServos;
+
+
+Servo rightMinionLeftArm;
+Servo rightMinionRightArm;
+Servo rightTableAxis;
+NewPing  rightSonarEyes=  NewPing(RIGHT_MINION_PING_TRIGGER,RIGHT_MINION_PING_ECHO, MAX_DISTANCE+10);
+
+
+
+
 //ServoPing LeftMinion();
 
 //The setup function is called once at startup of the sketch
@@ -54,12 +77,15 @@ void setup()
 	 LeftMinionRightArm.attach(LEFT_MINION_ARM_RIGHTARM_SERVO);
 	 LeftMinionLeftArm.attach(LEFT_MINION_ARM_LEFTARM_SERVO);
 	 LeftTableAxis.attach(LEFT_MINION_TABLE_SERVO);
-
 	 EnableLeftServos=true;
-	 //LeftMinion.attachPingAndServo(LeftSonarEyes,LeftMinionRightArm, MAX_DISTANCE);
-	 //CurrentDistanceToPingSensor = sp1->UpdateCurrentPosition();
-	 //sp1.enablePingControlOfServos();
-}
+
+	 rightMinionLeftArm.attach(RIGHT_MINION_ARM_LEFTARM_SERVO);
+	 rightMinionRightArm.attach(RIGHT_MINION_ARM_RIGHTARM_SERVO);
+	 rightTableAxis.attach(RIGHT_MINION_TABLE_SERVO);
+	 EnableRightServos=true;
+
+
+	 }
 
 // The loop function is called in an endless loop
 void loop()
@@ -94,6 +120,39 @@ void loop()
 			Serial.print(F("Left Disabled"));
 
 		}
+
+
+	    CurRightPingDistance =rightSonarEyes.ping()/US_ROUNDTRIP_CM;
+	    rightMinionRollingAverage = ((rightMinionRollingAverage *ROLLING_AVG_COUNT)+CurRightPingDistance)/(ROLLING_AVG_COUNT+1);
+
+	    if(( EnableRightServos==false)& ( rightMinionRollingAverage< MIN_DISTANCE_TO_ENABLE))
+		{
+			EnableRightServos=true;
+		}
+
+
+	//	_spServoGameTableAxis->write((int) map (_RollingPositionAvg,3*US_ROUNDTRIP_CM, _maxPingDistance*US_ROUNDTRIP_CM,_servoGameTableMinThrow,_servoGameTableMaxThrow));
+	//	_spServoMinionRightArm->write((int) map (_RollingPositionAvg, 3*US_ROUNDTRIP_CM, _maxPingDistance*US_ROUNDTRIP_CM,_minionServosArmsMinThrow,_minionServosArmsMaxThrow));
+
+		if  (rightMinionRollingAverage >=MAX_DISTANCE_TO_DISABLE )
+			{
+			EnableRightServos=false;
+			}
+
+		if (EnableRightServos==true)
+		{
+			Serial.print(F("Right Enabled"));
+			rightMinionRightArm.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
+			rightMinionLeftArm.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
+			rightTableAxis.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,4,130));
+		}
+		else
+		{
+			Serial.print(F("Right Disabled"));
+
+		}
+
+
 
 
 
