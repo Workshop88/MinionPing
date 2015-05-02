@@ -24,6 +24,5 @@ void setup();
 
 
 
-
 //Do not add code below this line
 #endif /* _MinionPing_H_ */
