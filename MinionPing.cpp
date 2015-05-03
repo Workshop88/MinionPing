@@ -30,7 +30,7 @@
 #define MAX_DISTANCE 400 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
 #define MIN_DISTANCE_TO_ENABLE 10
 #define MAX_DISTANCE_TO_DISABLE 60
-#define ROLLING_AVG_COUNT 4
+#define ROLLING_AVG_COUNT 8
 
 
 
@@ -131,12 +131,24 @@ while(1){  //don't worry, there's a return in there!
         	return;
 
         }
+    if ((rightSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
+           {
+           	EnableRightServos=true;
+           	return;
+
+           }
 
 
 
     LeftTableAxis.write((int)cornersL[1+(i>2)]);
     rightTableAxis.write((int)cornersR[1+(i>2)]);
     delay(DemoDelay);
+    if ((LeftSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
+           {
+           	EnableLeftServos=true;
+           	return;
+
+           }
     if ((rightSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
         {
         	EnableRightServos=true;
@@ -154,10 +166,23 @@ while(1){  //don't worry, there's a return in there!
         	return;
 
         }
+    if ((rightSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
+           {
+           	EnableRightServos=true;
+           	return;
+
+           }
+
 
     LeftTableAxis.write((int)cornersL[1+(i<3)]);
     rightTableAxis.write((int)cornersR[1+(i<3)]);
     delay(DemoDelay);
+    if ((LeftSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
+           {
+           	EnableLeftServos=true;
+           	return;
+
+           }
     if ((rightSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
         {
         	EnableRightServos=true;
@@ -239,7 +264,7 @@ void loop()
 			Serial.print(F("-- Right Enabled"));
 			rightMinionRightArm.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
 			rightMinionLeftArm.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
-			rightTableAxis.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,20,120));
+			rightTableAxis.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,20,150));
 		}
 		else
 		{
