@@ -6,7 +6,6 @@
 
 
 #define OP_MODE_TEST_SENSORS 1
-
 #define OP_MODE_DEMO 2
 #define OP_MODE_ACTIVE =3
 
@@ -55,10 +54,10 @@
 //  val = map(val, 120, 860, 5, 100);     // scale it to use it with the servo (value between 0 and 180)
 
 
-unsigned int OperationMode=OP_MODE_TEST_SENSORS;
+unsigned int OperationMode=OP_MODE_DEMO;
 
 unsigned int CurLeftPingDistance=0;
-unsigned int LeftMinionRollingAverage =0;
+unsigned int leftMinionRollingAverage =0;
 
 bool EnableLeftServos;
 Servo LeftMinionRightArm;
@@ -116,7 +115,7 @@ void updateLeftAndRightMinionPingDistance()
 
 	//This separates pinging incase I want to ping on a separate arduino and bring the data over on I2c.
     CurLeftPingDistance =LeftSonarEyes.ping()/US_ROUNDTRIP_CM;
-	LeftMinionRollingAverage = ((LeftMinionRollingAverage *ROLLING_AVG_COUNT)+CurLeftPingDistance)/(ROLLING_AVG_COUNT+1);
+	leftMinionRollingAverage = ((leftMinionRollingAverage *ROLLING_AVG_COUNT)+CurLeftPingDistance)/(ROLLING_AVG_COUNT+1);
 
 	delay(50);// Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings
     CurRightPingDistance =rightSonarEyes.ping()/US_ROUNDTRIP_CM;
@@ -126,12 +125,25 @@ void updateLeftAndRightMinionPingDistance()
 
 
 
-void test()
-{
 
+
+bool checkForMinimumDistanceEnabling()
+{
+	bool leaveDemoMode =false;
+	if ((leftMinionRollingAverage)<MIN_DISTANCE_TO_ENABLE)
+	{
+		EnableLeftServos=true;
+	    leaveDemoMode =true;
+	}
+	if ((rightMinionRollingAverage)<MIN_DISTANCE_TO_ENABLE)
+	{
+		EnableRightServos=true;
+	    leaveDemoMode =true;
+	}
+
+	return leaveDemoMode;
 
 }
-
 
 
 void demoMode(){
@@ -165,75 +177,41 @@ while(1){  //don't worry, there's a return in there!
 
     LeftTableAxis.write((int)cornersL[0]);
     rightTableAxis.write((int)cornersR[0]);
+
     delay(DemoDelay);
-
-
     updateLeftAndRightMinionPingDistance();
-
-    if ((CurLeftPingDistance)<MIN_DISTANCE_TO_ENABLE)
-        {
-        	EnableLeftServos=true;
-        	return;
-
-        }
-    if ((CurLeftPingDistance)<MIN_DISTANCE_TO_ENABLE)
-           {
-           	EnableRightServos=true;
-           	return;
-
-           }
-
-
+    if (checkForMinimumDistanceEnabling())
+    	return;
 
     LeftTableAxis.write((int)cornersL[1+(i>2)]);
     rightTableAxis.write((int)cornersR[1+(i>2)]);
+
+
     delay(DemoDelay);
-    if ((LeftSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
-           {
-           	EnableLeftServos=true;
-           	return;
+    updateLeftAndRightMinionPingDistance();
+    if (checkForMinimumDistanceEnabling())
+    	return;
 
-           }
-    if ((rightSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
-        {
-        	EnableRightServos=true;
-        	return;
-
-        }
+    delay(DemoDelay);
+    updateLeftAndRightMinionPingDistance();
 
 
     LeftTableAxis.write((int)cornersL[3]);
     rightTableAxis.write((int)cornersR[3]);
+
     delay(DemoDelay);
-    if ((LeftSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
-        {
-        	EnableLeftServos=true;
-        	return;
-
-        }
-    if ((rightSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
-           {
-           	EnableRightServos=true;
-           	return;
-
-           }
+    updateLeftAndRightMinionPingDistance();
+    if (checkForMinimumDistanceEnabling())
+    	return;
 
 
     LeftTableAxis.write((int)cornersL[1+(i<3)]);
     rightTableAxis.write((int)cornersR[1+(i<3)]);
+
     delay(DemoDelay);
-    if ((LeftSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
-           {
-           	EnableLeftServos=true;
-           	return;
-
-           }
-    if ((rightSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
-        {
-        	EnableRightServos=true;
-        	return;
-
-        }
+    updateLeftAndRightMinionPingDistance();
+    if (checkForMinimumDistanceEnabling())
+    	return;
 
 
     if(++i >5)i=0;
@@ -250,7 +228,7 @@ void testUltrasonicSensors()
 	updateLeftAndRightMinionPingDistance();
 
 	  char buf[15];
-	  sprintf(buf, "L%03d:%03d R%03d:%03d",LeftMinionRollingAverage,CurLeftPingDistance,rightMinionRollingAverage,CurRightPingDistance);
+	  sprintf(buf, "L%03d:%03d R%03d:%03d",leftMinionRollingAverage,CurLeftPingDistance,rightMinionRollingAverage,CurRightPingDistance);
 	  Serial.println(buf);
 
 
@@ -263,23 +241,31 @@ void testUltrasonicSensors()
 // The loop function is called in an endless loop
 void loop()
 {
+
+
+
 	switch (OperationMode)
 	{
 	case OP_MODE_TEST_SENSORS:
 		testUltrasonicSensors();
 		break;
+	case OP_MODE_DEMO:
+		demoMode();
+		OperationMode =OP_MODE_TEST_SENSORS;// this is just temporary
+		break;
+
 	default:
 		break;
 	}
 
-	updateLeftAndRightMinionPingDistance();
+}
 
 
+void normalOperation()
+{
+updateLeftAndRightMinionPingDistance();
 
-
-
-
-	    if(( EnableLeftServos==false)& ( LeftMinionRollingAverage< MIN_DISTANCE_TO_ENABLE))
+	    if(( EnableLeftServos==false)& ( leftMinionRollingAverage< MIN_DISTANCE_TO_ENABLE))
 		{
 			EnableLeftServos=true;
 		}
@@ -292,7 +278,7 @@ void loop()
 	//	_spServoGameTableAxis->write((int) map (_RollingPositionAvg,3*US_ROUNDTRIP_CM, _maxPingDistance*US_ROUNDTRIP_CM,_servoGameTableMinThrow,_servoGameTableMaxThrow));
 	//	_spServoMinionLeftArm->write((int) map (_RollingPositionAvg, 3*US_ROUNDTRIP_CM, _maxPingDistance*US_ROUNDTRIP_CM,_minionServosArmsMinThrow,_minionServosArmsMaxThrow));
 
-		if  (LeftMinionRollingAverage >=MAX_DISTANCE_TO_DISABLE )
+		if  (leftMinionRollingAverage >=MAX_DISTANCE_TO_DISABLE )
 			{
 			EnableLeftServos=false;
 			}
@@ -300,9 +286,9 @@ void loop()
 		if (EnableLeftServos==true)
 		{
 			Serial.print(F("Left Enabled"));
-			LeftMinionRightArm.write((int) map (LeftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
-			LeftMinionLeftArm.write((int) map (LeftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
-			LeftTableAxis.write((int) map (LeftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,90,0));
+			LeftMinionRightArm.write((int) map (leftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
+			LeftMinionLeftArm.write((int) map (leftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
+			LeftTableAxis.write((int) map (leftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,90,0));
 			digitalWrite(LEFT_MINION_LED, HIGH);
 		}
 		else
@@ -313,7 +299,7 @@ void loop()
 		}
 
 
-		Serial.print(LeftMinionRollingAverage );
+		Serial.print(leftMinionRollingAverage );
 		Serial.print (F("--- "));
 		Serial.print(CurLeftPingDistance);
 		Serial.println();
