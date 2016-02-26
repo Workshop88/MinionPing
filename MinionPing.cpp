@@ -4,20 +4,26 @@
 #include <Servo.h>
 #include "NewPing.h"
 
-#define LEFT_MINION_PING_ECHO  7
-#define LEFT_MINION_PING_TRIGGER  8  // Arduino pin tied to both trigger and echo pins on the ultrasonic sensor.
-#define LEFT_MINION_TABLE_SERVO 11
-#define LEFT_MINION_ARM_LEFTARM_SERVO  10
-#define LEFT_MINION_ARM_RIGHTARM_SERVO  3
-#define LEFT_MINION_ID 1
+#define LEFT_MINION_PING_ECHO  2
+#define LEFT_MINION_PING_TRIGGER  4  // Arduino pin tied to both trigger and echo pins on the ultrasonic sensor.
+
+#define LEFT_MINION_TABLE_SERVO 3
+#define LEFT_MINION_ARM_LEFTARM_SERVO  5
+#define LEFT_MINION_ARM_RIGHTARM_SERVO  6
+
+#define LEFT_MINION_LED 0
 #define LEFT_GAME_SERVO_MIN_THROW 30
 #define LEFT_GAME_SERVO_MAX_THROW 120
 
-#define RIGHT_MINION_PING_ECHO  12
-#define RIGHT_MINION_PING_TRIGGER 13  // Arduino pin tied to both trigger and echo pins on the ultrasonic sensor.
-#define RIGHT_MINION_TABLE_SERVO 5
-#define RIGHT_MINION_ARM_LEFTARM_SERVO  6
-#define RIGHT_MINION_ARM_RIGHTARM_SERVO  9
+
+
+#define RIGHT_MINION_PING_ECHO  7
+#define RIGHT_MINION_PING_TRIGGER 8  // Arduino pin tied to both trigger and echo pins on the ultrasonic sensor.
+#define RIGHT_MINION_TABLE_SERVO 9
+#define RIGHT_MINION_ARM_LEFTARM_SERVO  10
+#define RIGHT_MINION_ARM_RIGHTARM_SERVO  11
+#define RIGHT_MINION_LED 12
+
 #define RIGHT_MINION_ID 2
 #define RIGHT_GAME_SERVO_MIN_THROW 30
 #define RIGHT_GAME_SERVO_MAX_THROW 120
@@ -73,6 +79,8 @@ NewPing  rightSonarEyes=  NewPing(RIGHT_MINION_PING_TRIGGER,RIGHT_MINION_PING_EC
 void setup()
 {
 	 Serial.begin(115200); // Open serial monitor at 115200 baud to see ping results..
+	 pinMode(RIGHT_MINION_LED, OUTPUT);
+	 pinMode(LEFT_MINION_LED, OUTPUT);
 
 	 LeftMinionRightArm.attach(LEFT_MINION_ARM_RIGHTARM_SERVO);
 	 LeftMinionLeftArm.attach(LEFT_MINION_ARM_LEFTARM_SERVO);
@@ -211,6 +219,10 @@ void loop()
 		{
 			EnableLeftServos=true;
 		}
+	   // else if (LeftMinionRollingAverage==0)
+	   // {
+	   // 	EnableLeftServos=false;
+	   // }
 
 
 	//	_spServoGameTableAxis->write((int) map (_RollingPositionAvg,3*US_ROUNDTRIP_CM, _maxPingDistance*US_ROUNDTRIP_CM,_servoGameTableMinThrow,_servoGameTableMaxThrow));
@@ -226,10 +238,12 @@ void loop()
 			Serial.print(F("Left Enabled"));
 			LeftMinionRightArm.write((int) map (LeftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
 			LeftMinionLeftArm.write((int) map (LeftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
-			LeftTableAxis.write((int) map (LeftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,50,140));
+			LeftTableAxis.write((int) map (LeftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,90,0));
+			digitalWrite(LEFT_MINION_LED, HIGH);
 		}
 		else
 		{
+			digitalWrite(LEFT_MINION_LED, LOW);
 			Serial.print(F("Left Disabled"));
 
 		}
@@ -238,8 +252,9 @@ void loop()
 		Serial.print(LeftMinionRollingAverage );
 		Serial.print (F("--- "));
 		Serial.print(CurLeftPingDistance);
+		Serial.println();
 
-
+		Serial.print ("                                                     ");
 
 
 	    CurRightPingDistance =rightSonarEyes.ping()/US_ROUNDTRIP_CM;
@@ -264,10 +279,12 @@ void loop()
 			Serial.print(F("-- Right Enabled"));
 			rightMinionRightArm.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
 			rightMinionLeftArm.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
-			rightTableAxis.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,20,150));
+			rightTableAxis.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,20,100));
+			digitalWrite(RIGHT_MINION_LED, HIGH);
 		}
 		else
 		{
+			digitalWrite(RIGHT_MINION_LED, LOW);
 			Serial.print(F("-- Right Disabled"));
 
 		}
@@ -275,11 +292,14 @@ void loop()
 		Serial.print(rightMinionRollingAverage );
 			Serial.print (F("--- "));
 			Serial.println(CurRightPingDistance);
-
 		if ((EnableLeftServos==false) & (EnableRightServos==false))
 			{
 			demoMode();
 			}
+
+
+
+
 
 }
 
