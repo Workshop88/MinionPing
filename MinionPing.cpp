@@ -126,7 +126,11 @@ void updateLeftAndRightMinionPingDistance()
 
 
 
-void test
+void test()
+{
+
+
+}
 
 
 
@@ -238,13 +242,36 @@ while(1){  //don't worry, there's a return in there!
 }//end demoMode
 
 
+void testUltrasonicSensors()
+{
+
+	while(1)
+	{
+	updateLeftAndRightMinionPingDistance();
+
+	  char buf[15];
+	  sprintf(buf, "L%03d:%03d R%03d:%03d",LeftMinionRollingAverage,CurLeftPingDistance,rightMinionRollingAverage,CurRightPingDistance);
+	  Serial.println(buf);
+
+
+
+	Serial.print(rightMinionRollingAverage );
+	Serial.print (F("--- "));
+	Serial.println(CurRightPingDistance);
+
+	}
+
+}
+
+
+
 // The loop function is called in an endless loop
 void loop()
 {
 	switch (OperationMode)
 	{
 	case OP_MODE_TEST_SENSORS:
-	   testUltrasonicSensors();
+		testUltrasonicSensors();
 		break;
 	default:
 		break;
@@ -255,7 +282,7 @@ void loop()
 
 
 
-	.
+
 
 	    if(( EnableLeftServos==false)& ( LeftMinionRollingAverage< MIN_DISTANCE_TO_ENABLE))
 		{
@@ -342,26 +369,7 @@ void loop()
 
 
 }
-void testUltrasonicSensors()
-{
 
-	while(1)
-	{
-	updateLeftAndRightMinionPingDistance();
-
-	  char buf[15];
-	  sprintf(buf, "L%03d:%03d R%03d:%03d",LeftMinionRollingAverage,CurLeftPingDistance,rightMinionRollingAverage,CurRightPingDistance);
-	  Serial.println(buf);
-
-
-
-	Serial.print(rightMinionRollingAverage );
-	Serial.print (F("--- "));
-	Serial.println(CurRightPingDistance);
-
-	}
-
-}
 
 
 
