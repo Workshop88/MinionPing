@@ -4,6 +4,13 @@
 #include <Servo.h>
 #include "NewPing.h"
 
+
+#define OP_MODE_TEST_SENSORS 1
+
+#define OP_MODE_DEMO 2
+#define OP_MODE_ACTIVE =3
+
+
 #define LEFT_MINION_PING_ECHO  2
 #define LEFT_MINION_PING_TRIGGER  4  // Arduino pin tied to both trigger and echo pins on the ultrasonic sensor.
 
@@ -48,15 +55,17 @@
 //  val = map(val, 120, 860, 5, 100);     // scale it to use it with the servo (value between 0 and 180)
 
 
+unsigned int OperationMode=OP_MODE_TEST_SENSORS;
 
 unsigned int CurLeftPingDistance=0;
 unsigned int LeftMinionRollingAverage =0;
-//unsigned int previousUs=0;
+
 bool EnableLeftServos;
 Servo LeftMinionRightArm;
 Servo LeftMinionLeftArm;
 Servo LeftTableAxis;
 NewPing  LeftSonarEyes=  NewPing(LEFT_MINION_PING_TRIGGER,LEFT_MINION_PING_ECHO, MAX_DISTANCE+10);
+
 
 
 unsigned int CurRightPingDistance=0;
@@ -101,6 +110,26 @@ void setup()
 byte cornersL[4]={50,50,140,140};
 byte cornersR[4]={20,80,20,80};
 
+
+void updateLeftAndRightMinionPingDistance()
+{
+
+	//This separates pinging incase I want to ping on a separate arduino and bring the data over on I2c.
+    CurLeftPingDistance =LeftSonarEyes.ping()/US_ROUNDTRIP_CM;
+	LeftMinionRollingAverage = ((LeftMinionRollingAverage *ROLLING_AVG_COUNT)+CurLeftPingDistance)/(ROLLING_AVG_COUNT+1);
+
+	delay(50);// Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings
+    CurRightPingDistance =rightSonarEyes.ping()/US_ROUNDTRIP_CM;
+	rightMinionRollingAverage = ((rightMinionRollingAverage *ROLLING_AVG_COUNT)+CurRightPingDistance)/(ROLLING_AVG_COUNT+1);
+	delay(50);// Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings
+}
+
+
+
+void test
+
+
+
 void demoMode(){
 //  static int cnt=0, Lval=255, Rval=255;
 //  static unsigned int debounce=0;
@@ -133,13 +162,17 @@ while(1){  //don't worry, there's a return in there!
     LeftTableAxis.write((int)cornersL[0]);
     rightTableAxis.write((int)cornersR[0]);
     delay(DemoDelay);
-    if ((LeftSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
+
+
+    updateLeftAndRightMinionPingDistance();
+
+    if ((CurLeftPingDistance)<MIN_DISTANCE_TO_ENABLE)
         {
         	EnableLeftServos=true;
         	return;
 
         }
-    if ((rightSonarEyes.ping()/US_ROUNDTRIP_CM)<MIN_DISTANCE_TO_ENABLE)
+    if ((CurLeftPingDistance)<MIN_DISTANCE_TO_ENABLE)
            {
            	EnableRightServos=true;
            	return;
@@ -205,15 +238,24 @@ while(1){  //don't worry, there's a return in there!
 }//end demoMode
 
 
-
-
-
 // The loop function is called in an endless loop
 void loop()
 {
-	 delay(50);                      // Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings.
-	    CurLeftPingDistance =LeftSonarEyes.ping()/US_ROUNDTRIP_CM;
-	    LeftMinionRollingAverage = ((LeftMinionRollingAverage *ROLLING_AVG_COUNT)+CurLeftPingDistance)/(ROLLING_AVG_COUNT+1);
+	switch (OperationMode)
+	{
+	case OP_MODE_TEST_SENSORS:
+	   testUltrasonicSensors();
+		break;
+	default:
+		break;
+	}
+
+	updateLeftAndRightMinionPingDistance();
+
+
+
+
+	.
 
 	    if(( EnableLeftServos==false)& ( LeftMinionRollingAverage< MIN_DISTANCE_TO_ENABLE))
 		{
@@ -257,8 +299,6 @@ void loop()
 		Serial.print ("                                                     ");
 
 
-	    CurRightPingDistance =rightSonarEyes.ping()/US_ROUNDTRIP_CM;
-	    rightMinionRollingAverage = ((rightMinionRollingAverage *ROLLING_AVG_COUNT)+CurRightPingDistance)/(ROLLING_AVG_COUNT+1);
 
 	    if(( EnableRightServos==false)& ( rightMinionRollingAverage< MIN_DISTANCE_TO_ENABLE))
 		{
@@ -289,7 +329,8 @@ void loop()
 
 		}
 
-		Serial.print(rightMinionRollingAverage );
+		Serial.print
+		(rightMinionRollingAverage );
 			Serial.print (F("--- "));
 			Serial.println(CurRightPingDistance);
 		if ((EnableLeftServos==false) & (EnableRightServos==false))
@@ -300,6 +341,25 @@ void loop()
 
 
 
+}
+void testUltrasonicSensors()
+{
+
+	while(1)
+	{
+	updateLeftAndRightMinionPingDistance();
+
+	  char buf[15];
+	  sprintf(buf, "L%03d:%03d R%03d:%03d",LeftMinionRollingAverage,CurLeftPingDistance,rightMinionRollingAverage,CurRightPingDistance);
+	  Serial.println(buf);
+
+
+
+	Serial.print(rightMinionRollingAverage );
+	Serial.print (F("--- "));
+	Serial.println(CurRightPingDistance);
+
+	}
 
 }
 
