@@ -254,11 +254,6 @@ void testUltrasonicSensors()
 	  Serial.println(buf);
 
 
-
-	Serial.print(rightMinionRollingAverage );
-	Serial.print (F("--- "));
-	Serial.println(CurRightPingDistance);
-
 	}
 
 }
