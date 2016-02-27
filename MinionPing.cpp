@@ -22,7 +22,7 @@
 #define LEFT_MINION_ARM_LEFTARM_SERVO  5
 #define LEFT_MINION_ARM_RIGHTARM_SERVO  6
 
-#define LEFT_MINION_LED 0
+//#define LEFT_MINION_LED 0
 #define LEFT_GAME_SERVO_MIN_THROW 30
 #define LEFT_GAME_SERVO_MAX_THROW 120
 
@@ -38,7 +38,7 @@
 #define RIGHT_MINION_TABLE_SERVO 9
 #define RIGHT_MINION_ARM_LEFTARM_SERVO  10
 #define RIGHT_MINION_ARM_RIGHTARM_SERVO  11
-#define RIGHT_MINION_LED 12
+//#define RIGHT_MINION_LED 12
 
 #define RIGHT_MINION_ID 2
 #define RIGHT_GAME_SERVO_MIN_THROW 30
@@ -52,7 +52,7 @@
 #define MAX_DISTANCE 400 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
 #define MIN_DISTANCE_TO_ENABLE 10
 #define MAX_DISTANCE_TO_DISABLE 60
-#define ROLLING_AVG_COUNT 8
+#define ROLLING_AVG_COUNT 5
 
 
 
@@ -71,8 +71,8 @@ unsigned int leftMinionRollingAverage =0;
 unsigned int DemoPosition=2;
 unsigned int MinionSleepState = SLEEP_STATE_SNORING;
 bool EnableLeftMinion;
-Servo LeftMinionRightArm;
-Servo LeftMinionLeftArm;
+//Servo LeftMinionRightArm;
+//Servo LeftMinionLeftArm;
 Servo LeftTableAxis;
 NewPing  LeftSonarEyes=  NewPing(LEFT_MINION_PING_TRIGGER,LEFT_MINION_PING_ECHO, MAX_DISTANCE+10);
 
@@ -84,8 +84,8 @@ unsigned int rightMinionRollingAverage =0;
 bool EnableRightMinion;
 
 
-Servo rightMinionLeftArm;
-Servo rightMinionRightArm;
+//Servo rightMinionLeftArm;
+//Servo rightMinionRightArm;
 Servo rightTableAxis;
 NewPing  rightSonarEyes=  NewPing(RIGHT_MINION_PING_TRIGGER,RIGHT_MINION_PING_ECHO, MAX_DISTANCE+10);
 
@@ -98,16 +98,16 @@ NewPing  rightSonarEyes=  NewPing(RIGHT_MINION_PING_TRIGGER,RIGHT_MINION_PING_EC
 void setup()
 {
 	 Serial.begin(115200); // Open serial monitor at 115200 baud to see ping results..
-	 pinMode(RIGHT_MINION_LED, OUTPUT);
-	 pinMode(LEFT_MINION_LED, OUTPUT);
+//	 pinMode(RIGHT_MINION_LED, OUTPUT);
+//	 pinMode(LEFT_MINION_LED, OUTPUT);
 
-	 LeftMinionRightArm.attach(LEFT_MINION_ARM_RIGHTARM_SERVO);
-	 LeftMinionLeftArm.attach(LEFT_MINION_ARM_LEFTARM_SERVO);
+//	 LeftMinionRightArm.attach(LEFT_MINION_ARM_RIGHTARM_SERVO);
+//	 LeftMinionLeftArm.attach(LEFT_MINION_ARM_LEFTARM_SERVO);
 	 LeftTableAxis.attach(LEFT_MINION_TABLE_SERVO);
 	 EnableLeftMinion=true;
 
-	 rightMinionLeftArm.attach(RIGHT_MINION_ARM_LEFTARM_SERVO);
-	 rightMinionRightArm.attach(RIGHT_MINION_ARM_RIGHTARM_SERVO);
+//	 rightMinionLeftArm.attach(RIGHT_MINION_ARM_LEFTARM_SERVO);
+//	 rightMinionRightArm.attach(RIGHT_MINION_ARM_RIGHTARM_SERVO);
 	 rightTableAxis.attach(RIGHT_MINION_TABLE_SERVO);
 	 EnableRightMinion=true;
 
@@ -134,14 +134,16 @@ void printCurrentSensorReading()
 void updateLeftAndRightMinionPingDistance()
 {
 
+	 CurRightPingDistance =rightSonarEyes.ping()/US_ROUNDTRIP_CM;
+		rightMinionRollingAverage = ((rightMinionRollingAverage *ROLLING_AVG_COUNT)+CurRightPingDistance)/(ROLLING_AVG_COUNT+1);
+		delay(50);// Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings
+
 	//This separates pinging incase I want to ping on a separate arduino and bring the data over on I2c.
     CurLeftPingDistance =LeftSonarEyes.ping()/US_ROUNDTRIP_CM;
 	leftMinionRollingAverage = ((leftMinionRollingAverage *ROLLING_AVG_COUNT)+CurLeftPingDistance)/(ROLLING_AVG_COUNT+1);
 
-	delay(50);// Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings
-    CurRightPingDistance =rightSonarEyes.ping()/US_ROUNDTRIP_CM;
-	rightMinionRollingAverage = ((rightMinionRollingAverage *ROLLING_AVG_COUNT)+CurRightPingDistance)/(ROLLING_AVG_COUNT+1);
-	delay(50);// Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings
+	delay(35);// Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings
+
 }
 
 
@@ -151,6 +153,8 @@ void updateLeftAndRightMinionPingDistance()
 void GetMinionSleepState()
 {
 	MinionSleepState = SLEEP_STATE_WIDE_AWAKE;
+	EnableLeftMinion=true;
+	EnableRightMinion=true;
 
 	if (leftMinionRollingAverage>=MAX_DISTANCE_TO_DISABLE || leftMinionRollingAverage==0)
 	{
@@ -274,89 +278,25 @@ void GameMode()
 	{
 	updateLeftAndRightMinionPingDistance();
 	printCurrentSensorReading();
-//
-//	    if(( EnableLeftMinion==false)& ( leftMinionRollingAverage< MIN_DISTANCE_TO_ENABLE))
-//		{
-//			EnableLeftMinion=true;
-//		}
-//	   // else if (LeftMinionRollingAverage==0)
-//	   // {
-//	   // 	EnableLeftServos=false;
-//	   // }
-//
-//
-//	//_spServoGameTableAxis->write((int) map (_RollingPositionAvg,3*US_ROUNDTRIP_CM, _maxPingDistance*US_ROUNDTRIP_CM,_servoGameTableMinThrow,_servoGameTableMaxThrow));
-//	//	_spServoMinionLeftArm->write((int) map (_RollingPositionAvg, 3*US_ROUNDTRIP_CM, _maxPingDistance*US_ROUNDTRIP_CM,_minionServosArmsMinThrow,_minionServosArmsMaxThrow));
-//
-//		if  (leftMinionRollingAverage >=MAX_DISTANCE_TO_DISABLE )
-//			{
-//			EnableLeftMinion=false;
-//			}
-//
-		if (EnableLeftMinion==true)
+
+	if (EnableLeftMinion==true)
 		{
-			Serial.print(F("Left Enabled"));
+			//Serial.print(F("Left Enabled"));
 //			LeftMinionRightArm.write((int) map (leftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
 //			LeftMinionLeftArm.write((int) map (leftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
-			LeftTableAxis.write((int) map (leftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,90,0));
-			digitalWrite(LEFT_MINION_LED, HIGH);
+			//LeftTableAxis.write((int) map (leftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,200,40));
+			LeftTableAxis.write((int) map (leftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,95,55));
+			//digitalWrite(LEFT_MINION_LED, HIGH);
 		}
-		else
-		{
-//			digitalWrite(LEFT_MINION_LED, LOW);
-			Serial.print(F("Left Disabled"));
 
-		}
-//
-//
-//		Serial.print(leftMinionRollingAverage );
-//		Serial.print (F("--- "));
-//		Serial.print(CurLeftPingDistance);
-//		Serial.println();
-//
-//		Serial.print ("                                                     ");
-//
-//
-//
-//	    if(( EnableRightMinion==false)& ( rightMinionRollingAverage< MIN_DISTANCE_TO_ENABLE))
-//		{
-//			EnableRightMinion=true;
-//		}
-//
-//
-//	//	_spServoGameTableAxis->write((int) map (_RollingPositionAvg,3*US_ROUNDTRIP_CM, _maxPingDistance*US_ROUNDTRIP_CM,_servoGameTableMinThrow,_servoGameTableMaxThrow));
-//	//	_spServoMinionRightArm->write((int) map (_RollingPositionAvg, 3*US_ROUNDTRIP_CM, _maxPingDistance*US_ROUNDTRIP_CM,_minionServosArmsMinThrow,_minionServosArmsMaxThrow));
-//
-//
-//
-		if (EnableRightMinion==true)
+	if (EnableRightMinion==true)
 		{
-			//Serial.print(F("-- Right Enabled"));
 //			rightMinionRightArm.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
 //			rightMinionLeftArm.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
-			rightTableAxis.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,20,100));
-//			digitalWrite(RIGHT_MINION_LED, HIGH);
+			rightTableAxis.write((int) map (rightMinionRollingAverage,MAX_DISTANCE_TO_DISABLE,3 ,100,1));
 		}
-		else
-		{
-//			digitalWrite(RIGHT_MINION_LED, LOW);
-			//Serial.print(F("-- Right Disabled"));
-//
-		}
-//
-//		Serial.print
-//		(rightMinionRollingAverage );
-//			Serial.print (F("--- "));
-//			Serial.println(CurRightPingDistance);
-//		if ((EnableLeftMinion==false) & (EnableRightMinion==false))
-//			{
-//			demoMode();
-//			}
-//
-//
-//
-//
-		GetMinionSleepState();
+
+	GetMinionSleepState();
 		if(MinionSleepState == SLEEP_STATE_SNORING ||MinionSleepState == SLEEP_STATE_NODDING_OFF)
 		{
 			Serial.println("Leaving Game Mode");
