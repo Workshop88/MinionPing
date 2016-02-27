@@ -267,9 +267,13 @@ void testUltrasonicSensors()
 
 
 
-void normalOperation()
+void GameMode()
 {
+	Serial.println("Entering Game Mode");
+	while(1)
+	{
 	updateLeftAndRightMinionPingDistance();
+	printCurrentSensorReading();
 //
 //	    if(( EnableLeftMinion==false)& ( leftMinionRollingAverage< MIN_DISTANCE_TO_ENABLE))
 //		{
@@ -281,7 +285,7 @@ void normalOperation()
 //	   // }
 //
 //
-//	//	_spServoGameTableAxis->write((int) map (_RollingPositionAvg,3*US_ROUNDTRIP_CM, _maxPingDistance*US_ROUNDTRIP_CM,_servoGameTableMinThrow,_servoGameTableMaxThrow));
+//	//_spServoGameTableAxis->write((int) map (_RollingPositionAvg,3*US_ROUNDTRIP_CM, _maxPingDistance*US_ROUNDTRIP_CM,_servoGameTableMinThrow,_servoGameTableMaxThrow));
 //	//	_spServoMinionLeftArm->write((int) map (_RollingPositionAvg, 3*US_ROUNDTRIP_CM, _maxPingDistance*US_ROUNDTRIP_CM,_minionServosArmsMinThrow,_minionServosArmsMaxThrow));
 //
 //		if  (leftMinionRollingAverage >=MAX_DISTANCE_TO_DISABLE )
@@ -289,20 +293,20 @@ void normalOperation()
 //			EnableLeftMinion=false;
 //			}
 //
-//		if (EnableLeftMinion==true)
-//		{
-//			Serial.print(F("Left Enabled"));
+		if (EnableLeftMinion==true)
+		{
+			Serial.print(F("Left Enabled"));
 //			LeftMinionRightArm.write((int) map (leftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
 //			LeftMinionLeftArm.write((int) map (leftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
-//			LeftTableAxis.write((int) map (leftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,90,0));
-//			digitalWrite(LEFT_MINION_LED, HIGH);
-//		}
-//		else
-//		{
+			LeftTableAxis.write((int) map (leftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,90,0));
+			digitalWrite(LEFT_MINION_LED, HIGH);
+		}
+		else
+		{
 //			digitalWrite(LEFT_MINION_LED, LOW);
-//			Serial.print(F("Left Disabled"));
-//
-//		}
+			Serial.print(F("Left Disabled"));
+
+		}
 //
 //
 //		Serial.print(leftMinionRollingAverage );
@@ -325,20 +329,20 @@ void normalOperation()
 //
 //
 //
-//		if (EnableRightMinion==true)
-//		{
-//			Serial.print(F("-- Right Enabled"));
+		if (EnableRightMinion==true)
+		{
+			//Serial.print(F("-- Right Enabled"));
 //			rightMinionRightArm.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
 //			rightMinionLeftArm.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
-//			rightTableAxis.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,20,100));
+			rightTableAxis.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,20,100));
 //			digitalWrite(RIGHT_MINION_LED, HIGH);
-//		}
-//		else
-//		{
+		}
+		else
+		{
 //			digitalWrite(RIGHT_MINION_LED, LOW);
-//			Serial.print(F("-- Right Disabled"));
+			//Serial.print(F("-- Right Disabled"));
 //
-//		}
+		}
 //
 //		Serial.print
 //		(rightMinionRollingAverage );
@@ -352,6 +356,15 @@ void normalOperation()
 //
 //
 //
+		GetMinionSleepState();
+		if(MinionSleepState == SLEEP_STATE_SNORING ||MinionSleepState == SLEEP_STATE_NODDING_OFF)
+		{
+			Serial.println("Leaving Game Mode");
+			return;
+		}
+
+
+	}
 }
 
 
@@ -386,7 +399,7 @@ void loop()
 
 	case OP_MODE_ACTIVE:
 	{
-		normalOperation();
+		GameMode();
 		break;
 	}
 	default:
