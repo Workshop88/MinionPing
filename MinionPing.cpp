@@ -7,7 +7,12 @@
 
 #define OP_MODE_WAITING_FOR_EVERYONE_TO_WAKE 1
 #define OP_MODE_DEMO 2
-#define OP_MODE_ACTIVE =3
+#define OP_MODE_ACTIVE 3
+
+#define SLEEP_STATE_SNORING 0
+#define SLEEP_STATE_NODDING_OFF 1
+#define SLEEP_STATE_WIDE_AWAKE  2
+
 
 
 #define LEFT_MINION_PING_ECHO  2
@@ -20,6 +25,11 @@
 #define LEFT_MINION_LED 0
 #define LEFT_GAME_SERVO_MIN_THROW 30
 #define LEFT_GAME_SERVO_MAX_THROW 120
+
+#define CORNER_SCORE 0
+#define CORNER_RIGHT 1
+#define CORNER_START 2
+#define CORNER_LEFT 3
 
 
 
@@ -58,7 +68,8 @@ unsigned int OperationMode=OP_MODE_DEMO;
 
 unsigned int CurLeftPingDistance=0;
 unsigned int leftMinionRollingAverage =0;
-
+unsigned int DemoPosition=2;
+unsigned int MinionSleepState = SLEEP_STATE_SNORING;
 bool EnableLeftMinion;
 Servo LeftMinionRightArm;
 Servo LeftMinionLeftArm;
@@ -103,11 +114,15 @@ void setup()
 
 	 }
 
-#define DemoDelay 2000
+#define DemoDelay 2300
 //#define InThresh 3
 //#define DemoDebounce 1500
-byte cornersL[4]={50,50,140,140};
-byte cornersR[4]={20,80,20,80};
+//byte cornersL[4]={50,50,140,140};
+//byte cornersR[4]={20,80,20,80};
+
+byte cornersL[4]={55,55,95,95};//position 0 is the score cornder, position 2 is starting position Corner
+byte cornersR[4]={75,45,45,75};
+
 
 void printCurrentSensorReading()
 {
@@ -133,15 +148,16 @@ void updateLeftAndRightMinionPingDistance()
 
 
 
-bool Check2SeeIfBothMinionsHaveFallenASleep()
+void GetMinionSleepState()
 {
-	bool EnterDemoMode =false;
+	MinionSleepState = SLEEP_STATE_WIDE_AWAKE;
 
 	if (leftMinionRollingAverage>=MAX_DISTANCE_TO_DISABLE || leftMinionRollingAverage==0)
 	{
 		if (EnableLeftMinion)
 		{
 			Serial.println("Left Minion is falling asleep");
+			MinionSleepState = SLEEP_STATE_NODDING_OFF;
 			EnableLeftMinion=false;
 
 		}
@@ -153,6 +169,7 @@ bool Check2SeeIfBothMinionsHaveFallenASleep()
 		{
 			Serial.println("Right Minion is falling asleep");
 			EnableRightMinion=false;
+			MinionSleepState = SLEEP_STATE_NODDING_OFF;
 		}
 
 
@@ -160,12 +177,12 @@ bool Check2SeeIfBothMinionsHaveFallenASleep()
 
 	if (EnableLeftMinion ==false && EnableRightMinion==false  )
 	{
-		EnterDemoMode =true;
 		printCurrentSensorReading();
+		MinionSleepState = SLEEP_STATE_SNORING;
 		Serial.println("Both minions are asleep. Demo Mode should be enabled");
 
 	}
-	return EnterDemoMode;
+
 
 }
 
@@ -204,52 +221,36 @@ bool checkToSeeIfAMinionhasAwoken()
 }
 void demoMode()
 {
-  int i=0;
+
   Serial.println("Entering Demo Mode");
   while(1){  //don't worry, there's a return in there!
-	Serial.print("Position: ");
-	Serial.println(i);
-	switch (i)
-	{
-		case 1:
-		{
-			LeftTableAxis.write((int)cornersL[0]);
-			rightTableAxis.write((int)cornersR[0]);
-			break;
-		}
-		case 2:
-		{
-			LeftTableAxis.write((int)cornersL[1+(i>2)]);
-			rightTableAxis.write((int)cornersR[1+(i>2)]);
-			break;
-		}
-		case 3:
-		{
-		    LeftTableAxis.write((int)cornersL[3]);
-		    rightTableAxis.write((int)cornersR[3]);
-			break;
-		}
-		case 4:
-		{
-		    LeftTableAxis.write((int)cornersL[1+(i<3)]);
-		    rightTableAxis.write((int)cornersR[1+(i<3)]);
-			break;
-		}
 
-	}
-	i++;
-	if(i >5)
+	delay(DemoDelay);
+	updateLeftAndRightMinionPingDistance();
+
+	if (checkToSeeIfAMinionhasAwoken() && DemoPosition ==3 )
 	{
-		i=0;
+		Serial.println("Leaving Demo Mode");
+		return;
 	}
-		delay(DemoDelay);
-		updateLeftAndRightMinionPingDistance();
-		printCurrentSensorReading();
-		if (checkToSeeIfAMinionhasAwoken())
-		{
-			Serial.println("Leaving Demo Mode");
-			return;
-		}
+
+
+
+	Serial.print("Position: ");
+	Serial.print(DemoPosition);
+	Serial.print("L");
+	Serial.print((int)cornersL[DemoPosition]);
+	Serial.print(" R");
+	Serial.print((int)cornersR[DemoPosition]);
+	Serial.print("  ");
+	printCurrentSensorReading();
+
+	LeftTableAxis.write((int)cornersL[DemoPosition]);
+	rightTableAxis.write((int)cornersR[DemoPosition]);
+
+	DemoPosition++;
+	if (DemoPosition>CORNER_LEFT)
+		DemoPosition = CORNER_SCORE;
 
 }//end while 1
 
@@ -266,38 +267,9 @@ void testUltrasonicSensors()
 
 
 
-// The loop function is called in an endless loop
-void loop()
+void normalOperation()
 {
-
-
-
-	switch (OperationMode)
-	{
-	case OP_MODE_WAITING_FOR_EVERYONE_TO_WAKE:
-		testUltrasonicSensors();
-		break;
-	case OP_MODE_DEMO:
-		demoMode();
-		OperationMode =OP_MODE_WAITING_FOR_EVERYONE_TO_WAKE;// this is just temporary
-		break;
-
-	default:
-		break;
-	}
-
-
 	updateLeftAndRightMinionPingDistance();
-	if (Check2SeeIfBothMinionsHaveFallenASleep())
-		{
-			OperationMode =OP_MODE_DEMO;
-		}
-}
-
-
-//void normalOperation()
-//{
-//updateLeftAndRightMinionPingDistance();
 //
 //	    if(( EnableLeftMinion==false)& ( leftMinionRollingAverage< MIN_DISTANCE_TO_ENABLE))
 //		{
@@ -380,8 +352,72 @@ void loop()
 //
 //
 //
-//}
+}
 
+
+
+
+
+
+// The loop function is called in an endless loop
+void loop()
+{
+
+
+
+	switch (OperationMode)
+	{
+	case OP_MODE_WAITING_FOR_EVERYONE_TO_WAKE:
+		testUltrasonicSensors();
+		if(DemoPosition != CORNER_START)
+		{
+			DemoPosition=CORNER_RIGHT;
+		}
+		delay(DemoDelay);
+		LeftTableAxis.write((int)cornersL[DemoPosition]);
+		rightTableAxis.write((int)cornersR[DemoPosition]);
+		DemoPosition=CORNER_START;
+
+
+		break;
+	case OP_MODE_DEMO:
+		demoMode();// Demo mode will all with ball infront of minions
+		break;
+
+	case OP_MODE_ACTIVE:
+	{
+		normalOperation();
+		break;
+	}
+	default:
+		break;
+	}
+
+
+	updateLeftAndRightMinionPingDistance();
+	GetMinionSleepState();
+	switch (MinionSleepState)
+	{
+		case SLEEP_STATE_NODDING_OFF:
+		{
+			OperationMode =OP_MODE_WAITING_FOR_EVERYONE_TO_WAKE;
+			break;
+		}
+
+		case SLEEP_STATE_SNORING:
+		{
+			OperationMode =OP_MODE_DEMO;
+			break;
+		}
+		case SLEEP_STATE_WIDE_AWAKE:
+		{
+			OperationMode =OP_MODE_ACTIVE;
+			break;
+
+		}
+
+	}
+}
 
 
 
