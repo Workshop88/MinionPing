@@ -103,11 +103,15 @@ void setup()
 
 //	 LeftMinionRightArm.attach(LEFT_MINION_ARM_RIGHTARM_SERVO);
 //	 LeftMinionLeftArm.attach(LEFT_MINION_ARM_LEFTARM_SERVO);
+	 //	 rightMinionLeftArm.attach(RIGHT_MINION_ARM_LEFTARM_SERVO);
+	 //	 rightMinionRightArm.attach(RIGHT_MINION_ARM_RIGHTARM_SERVO);
+
+
+
+
 	 LeftTableAxis.attach(LEFT_MINION_TABLE_SERVO);
 	 EnableLeftMinion=true;
 
-//	 rightMinionLeftArm.attach(RIGHT_MINION_ARM_LEFTARM_SERVO);
-//	 rightMinionRightArm.attach(RIGHT_MINION_ARM_RIGHTARM_SERVO);
 	 rightTableAxis.attach(RIGHT_MINION_TABLE_SERVO);
 	 EnableRightMinion=true;
 
