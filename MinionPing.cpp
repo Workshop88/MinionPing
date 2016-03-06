@@ -54,7 +54,7 @@
 #define MAX_DISTANCE_TO_DISABLE 60
 #define ROLLING_AVG_COUNT 5
 // This test tries stuart's filtering algorithm
-#define  DATA_ARRAY_POINTS 6
+#define  DATA_ARRAY_POINTS 15
 
 unsigned int LeftMinionDataPoints[DATA_ARRAY_POINTS];
 unsigned int RightMinionDataPoints[DATA_ARRAY_POINTS];
