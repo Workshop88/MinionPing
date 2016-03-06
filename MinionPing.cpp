@@ -193,23 +193,17 @@ void updateLeftAndRightMinionPingDistance()
 
 		if (LeftMinionDataPoints[DataArrayIndex]< CurLeftPingDistance)
 		{
-			LeftMinionDataPoints[DataArrayIndex]= CurLeftPingDistance;
+			 CurLeftPingDistance= LeftMinionDataPoints[DataArrayIndex];
 		}
-
 		if (RightMinionDataPoints[DataArrayIndex]< CurRightPingDistance)
 		{
-			RightMinionDataPoints[DataArrayIndex]= CurRightPingDistance;
+			 CurRightPingDistance= RightMinionDataPoints[DataArrayIndex];
 		}
 	}
 
 
 	leftMinionFilteredValue = ((leftMinionFilteredValue *ROLLING_AVG_COUNT)+CurLeftPingDistance)/(ROLLING_AVG_COUNT+1);
-
-
-
-
-
-		 RightMinionFilteredValue = ((RightMinionFilteredValue *ROLLING_AVG_COUNT)+CurRightPingDistance)/(ROLLING_AVG_COUNT+1);
+	RightMinionFilteredValue = ((RightMinionFilteredValue *ROLLING_AVG_COUNT)+CurRightPingDistance)/(ROLLING_AVG_COUNT+1);
 
 
 	delay(35);// Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings
