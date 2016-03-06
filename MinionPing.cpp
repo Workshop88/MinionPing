@@ -53,6 +53,14 @@
 #define MIN_DISTANCE_TO_ENABLE 10
 #define MAX_DISTANCE_TO_DISABLE 60
 #define ROLLING_AVG_COUNT 5
+// This test tries stuart's filtering algorithm
+#define  DATA_ARRAY_POINTS 6
+
+unsigned int LeftMinionDataPoints[DATA_ARRAY_POINTS];
+unsigned int RightMinionDataPoints[DATA_ARRAY_POINTS];
+unsigned int DataArrayIndex;
+
+
 
 
 
@@ -67,7 +75,7 @@
 unsigned int OperationMode=OP_MODE_DEMO;
 
 unsigned int CurLeftPingDistance=0;
-unsigned int leftMinionRollingAverage =0;
+unsigned int leftMinionFilteredValue =0;
 unsigned int DemoPosition=2;
 unsigned int MinionSleepState = SLEEP_STATE_SNORING;
 bool EnableLeftMinion;
@@ -79,7 +87,7 @@ NewPing  LeftSonarEyes=  NewPing(LEFT_MINION_PING_TRIGGER,LEFT_MINION_PING_ECHO,
 
 
 unsigned int CurRightPingDistance=0;
-unsigned int rightMinionRollingAverage =0;
+unsigned int RightMinionFilteredValue =0;
 //unsigned int previousUs=0;
 bool EnableRightMinion;
 
@@ -106,8 +114,12 @@ void setup()
 	 //	 rightMinionLeftArm.attach(RIGHT_MINION_ARM_LEFTARM_SERVO);
 	 //	 rightMinionRightArm.attach(RIGHT_MINION_ARM_RIGHTARM_SERVO);
 
+     for (DataArrayIndex =0;DataArrayIndex<DATA_ARRAY_POINTS;DataArrayIndex++ )
+     {
+    	 LeftMinionDataPoints[DataArrayIndex]=0;
+    	 RightMinionDataPoints[DataArrayIndex]=0;
 
-
+     }
 
 	 LeftTableAxis.attach(LEFT_MINION_TABLE_SERVO);
 	 EnableLeftMinion=true;
@@ -138,16 +150,68 @@ void printCurrentSensorReading()
 void updateLeftAndRightMinionPingDistance()
 {
 
-	 CurRightPingDistance =rightSonarEyes.ping()/US_ROUNDTRIP_CM;
-		rightMinionRollingAverage = ((rightMinionRollingAverage *ROLLING_AVG_COUNT)+CurRightPingDistance)/(ROLLING_AVG_COUNT+1);
-		delay(50);// Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings
+	if (DataArrayIndex >= DATA_ARRAY_POINTS)
+	{
+		DataArrayIndex=0;
+	}
 
-	//This separates pinging incase I want to ping on a separate arduino and bring the data over on I2c.
-    CurLeftPingDistance =LeftSonarEyes.ping()/US_ROUNDTRIP_CM;
-	leftMinionRollingAverage = ((leftMinionRollingAverage *ROLLING_AVG_COUNT)+CurLeftPingDistance)/(ROLLING_AVG_COUNT+1);
+	 RightMinionDataPoints[DataArrayIndex] =rightSonarEyes.ping()/US_ROUNDTRIP_CM;
+
+	 if (RightMinionDataPoints[DataArrayIndex]>MAX_DISTANCE_TO_DISABLE)
+	 {
+		 RightMinionDataPoints[DataArrayIndex] =MAX_DISTANCE_TO_DISABLE;
+
+	 }
+	 if (RightMinionDataPoints[DataArrayIndex]<MIN_DISTANCE_TO_ENABLE)
+	 {
+		 RightMinionDataPoints[DataArrayIndex] =MIN_DISTANCE_TO_ENABLE;
+
+	 }
+
+	delay(50);// Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings
+
+	LeftMinionDataPoints[DataArrayIndex] =LeftSonarEyes.ping()/US_ROUNDTRIP_CM;
+	 if (LeftMinionDataPoints[DataArrayIndex]>MAX_DISTANCE_TO_DISABLE)
+	 {
+		 LeftMinionDataPoints[DataArrayIndex] =MAX_DISTANCE_TO_DISABLE;
+
+	 }
+	 if (LeftMinionDataPoints[DataArrayIndex]<MIN_DISTANCE_TO_ENABLE)
+	 {
+		 LeftMinionDataPoints[DataArrayIndex] =MIN_DISTANCE_TO_ENABLE;
+
+	 }
+
+
+	 CurLeftPingDistance= MAX_DISTANCE ;
+	 CurRightPingDistance=MAX_DISTANCE;
+
+	for (int i =0; i<DATA_ARRAY_POINTS;i++)
+	{
+
+		if (LeftMinionDataPoints[DataArrayIndex]< CurLeftPingDistance)
+		{
+			LeftMinionDataPoints[DataArrayIndex]= CurLeftPingDistance;
+		}
+
+		if (RightMinionDataPoints[DataArrayIndex]< CurRightPingDistance)
+		{
+			RightMinionDataPoints[DataArrayIndex]= CurRightPingDistance;
+		}
+	}
+
+
+	leftMinionFilteredValue = ((leftMinionFilteredValue *ROLLING_AVG_COUNT)+CurLeftPingDistance)/(ROLLING_AVG_COUNT+1);
+
+
+
+
+
+		 RightMinionFilteredValue = ((RightMinionFilteredValue *ROLLING_AVG_COUNT)+CurRightPingDistance)/(ROLLING_AVG_COUNT+1);
+
 
 	delay(35);// Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings
-
+	DataArrayIndex++;RightMinionFilteredValue()
 }
 
 
@@ -160,7 +224,7 @@ void GetMinionSleepState()
 	EnableLeftMinion=true;
 	EnableRightMinion=true;
 
-	if (leftMinionRollingAverage>=MAX_DISTANCE_TO_DISABLE || leftMinionRollingAverage==0)
+	if (leftMinionFilteredValue>=MAX_DISTANCE_TO_DISABLE || leftMinionFilteredValue==0)
 	{
 		if (EnableLeftMinion)
 		{
@@ -171,7 +235,7 @@ void GetMinionSleepState()
 		}
 
 	}
-	if (rightMinionRollingAverage>=MAX_DISTANCE_TO_DISABLE || rightMinionRollingAverage==0)
+	if (RightMinionFilteredValue>=MAX_DISTANCE_TO_DISABLE || RightMinionFilteredValue==0)
 	{
 		if (EnableRightMinion)
 		{
@@ -286,18 +350,18 @@ void GameMode()
 	if (EnableLeftMinion==true)
 		{
 			//Serial.print(F("Left Enabled"));
-//			LeftMinionRightArm.write((int) map (leftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
-//			LeftMinionLeftArm.write((int) map (leftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
-			//LeftTableAxis.write((int) map (leftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,200,40));
-			LeftTableAxis.write((int) map (leftMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,95,55));
+//			LeftMinionRightArm.write((int) map (leftMinionFilteredValue,3, MAX_DISTANCE_TO_DISABLE ,60,90));
+//			LeftMinionLeftArm.write((int) map (leftMinionFilteredValue,3, MAX_DISTANCE_TO_DISABLE ,60,90));
+			//LeftTableAxis.write((int) map (leftMinionFilteredValue,3, MAX_DISTANCE_TO_DISABLE ,200,40));
+			LeftTableAxis.write((int) map (leftMinionFilteredValue,3, MAX_DISTANCE_TO_DISABLE ,95,55));
 			//digitalWrite(LEFT_MINION_LED, HIGH);
 		}
 
 	if (EnableRightMinion==true)
 		{
 //			rightMinionRightArm.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
-//			rightMinionLeftArm.write((int) map (rightMinionRollingAverage,3, MAX_DISTANCE_TO_DISABLE ,60,90));
-			rightTableAxis.write((int) map (rightMinionRollingAverage,MAX_DISTANCE_TO_DISABLE,3 ,100,1));
+//			rightMinionLeftArm.write((int) map (RightMinionFilteredValue,3, MAX_DISTANCE_TO_DISABLE ,60,90));
+			rightTableAxis.write((int) map (RightMinionFilteredValue,MAX_DISTANCE_TO_DISABLE,3 ,100,1));
 		}
 
 	GetMinionSleepState();
