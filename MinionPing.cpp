@@ -49,13 +49,13 @@
 #define DEFAULT_MAX_SERVO_THROW 120
 #define MINIONARMMINTHROW 0
 #define MINIONARMMAXTHROW  120
-#define MAX_DISTANCE 400 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
+#define MAX_DISTANCE 100 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
 #define MIN_DISTANCE_TO_ENABLE 10
-#define MAX_DISTANCE_TO_DISABLE 60
-#define ROLLING_AVG_COUNT 20
+#define MAX_DISTANCE_TO_DISABLE 90
+#define ROLLING_AVG_COUNT 5
 // This test tries stuart's filtering algorithm
-#define  DATA_ARRAY_POINTS 15
-
+#define  DATA_ARRAY_POINTS 30
+#define ALPHA_VAL 0.4
 unsigned int LeftMinionDataPoints[DATA_ARRAY_POINTS];
 unsigned int RightMinionDataPoints[DATA_ARRAY_POINTS];
 unsigned int DataArrayIndex;
@@ -202,8 +202,14 @@ void updateLeftAndRightMinionPingDistance()
 	}
 
 
-	leftMinionFilteredValue = ((leftMinionFilteredValue *ROLLING_AVG_COUNT)+CurLeftPingDistance)/(ROLLING_AVG_COUNT+1);
-	RightMinionFilteredValue = ((RightMinionFilteredValue *ROLLING_AVG_COUNT)+CurRightPingDistance)/(ROLLING_AVG_COUNT+1);
+	  // Calculate exponential average.
+	leftMinionFilteredValue  = leftMinionFilteredValue  * (1 - ALPHA_VAL) + CurLeftPingDistance * ALPHA_VAL;
+	RightMinionFilteredValue = RightMinionFilteredValue * (1 - ALPHA_VAL) + CurRightPingDistance * ALPHA_VAL;
+
+
+// This was a rolling average calculation
+	//leftMinionFilteredValue = ((leftMinionFilteredValue *ROLLING_AVG_COUNT)+CurLeftPingDistance)/(ROLLING_AVG_COUNT+1);
+	//RightMinionFilteredValue = ((RightMinionFilteredValue *ROLLING_AVG_COUNT)+CurRightPingDistance)/(ROLLING_AVG_COUNT+1);
 
 
 	delay(35);// Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings
