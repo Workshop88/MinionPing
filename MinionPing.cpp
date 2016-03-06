@@ -76,6 +76,8 @@ unsigned int OperationMode=OP_MODE_DEMO;
 
 unsigned int CurLeftPingDistance=0;
 unsigned int leftMinionFilteredValue =0;
+unsigned int rightMinionFilteredValue =0;
+
 unsigned int DemoPosition=2;
 unsigned int MinionSleepState = SLEEP_STATE_SNORING;
 bool EnableLeftMinion;
@@ -143,7 +145,7 @@ byte cornersR[4]={75,45,45,75};
 void printCurrentSensorReading()
 {
 	  char buf[15];
-	  sprintf(buf, "L%03d:%03d R%03d:%03d",leftMinionRollingAverage,CurLeftPingDistance,rightMinionRollingAverage,CurRightPingDistance);
+	  sprintf(buf, "L%03d:%03d R%03d:%03d",leftMinionFilteredValue,CurLeftPingDistance,rightMinionFilteredValue,CurRightPingDistance);
 	  Serial.println(buf);
 
 }
@@ -211,7 +213,8 @@ void updateLeftAndRightMinionPingDistance()
 
 
 	delay(35);// Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings
-	DataArrayIndex++;RightMinionFilteredValue()
+	DataArrayIndex++;
+
 }
 
 
