@@ -52,7 +52,7 @@
 #define MAX_DISTANCE 400 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
 #define MIN_DISTANCE_TO_ENABLE 10
 #define MAX_DISTANCE_TO_DISABLE 60
-#define ROLLING_AVG_COUNT 5
+#define ROLLING_AVG_COUNT 20
 // This test tries stuart's filtering algorithm
 #define  DATA_ARRAY_POINTS 15
 
