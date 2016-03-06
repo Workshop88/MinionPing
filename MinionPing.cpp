@@ -63,6 +63,13 @@
 //  ival=val;
 //  val = map(val, 120, 860, 5, 100);     // scale it to use it with the servo (value between 0 and 180)
 
+#define MEDIAN_SAMPLING_POINTS 9
+
+unsigned int RollingLeftPingSamples[MEDIAN_SAMPLING_POINTS];
+unsigned int *RollingLeftPingPointer[MEDIAN_SAMPLING_POINTS];
+
+
+
 
 unsigned int OperationMode=OP_MODE_DEMO;
 
@@ -107,6 +114,8 @@ void setup()
 	 //	 rightMinionRightArm.attach(RIGHT_MINION_ARM_RIGHTARM_SERVO);
 
 
+     intializeMediumValues(RollingLeftPingSamples,RollingLeftPingPointer);
+     //intializeMediumValues(RollingLeftPingSamples);
 
 
 	 LeftTableAxis.attach(LEFT_MINION_TABLE_SERVO);
@@ -126,6 +135,22 @@ void setup()
 
 byte cornersL[4]={55,55,95,95};//position 0 is the score cornder, position 2 is starting position Corner
 byte cornersR[4]={75,45,45,75};
+
+
+//void intializeMediumValues(unsigned int *Samples)
+void intializeMediumValues(unsigned int Samples[],unsigned int *SamplePointer[])
+{
+
+
+
+
+
+
+
+}
+
+
+
 
 
 void printCurrentSensorReading()

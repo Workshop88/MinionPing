@@ -22,6 +22,7 @@ void setup();
 
 //add your function definitions for the project MinionPing here
 
+void intializeMediumValues(unsigned int *,unsigned int *[]);
 
 
 //Do not add code below this line
